@@ -1,1 +1,43 @@
 
+name: GGMousePro Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extrair projeto
+        run: |
+          mkdir projeto
+          unzip -q *.zip -d projeto
+          echo "PROJECT_DIR=$(dirname "$(find projeto -name settings.gradle -print -quit)")" >> $GITHUB_ENV
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Gerar APK
+        run: gradle -p "$PROJECT_DIR" assembleDebug
+
+      - name: Salvar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GGMousePro-APK
+          path: projeto/**/build/outputs/apk/debug/*.apk
+
